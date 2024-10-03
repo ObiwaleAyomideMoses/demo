@@ -48,12 +48,11 @@ app.use('*', async (req, res) => {
     console.log('Extracted client ID:', clientId)
 
     let clientInfo = {}
-    if (clientId) {
-      const response = await fetch(
-        `https://d7jxq5gn-3001.euw.devtunnels.ms/wallets/clientInfo`
-      )
-      clientInfo = await response.json()
-    }
+
+    const response = await fetch(
+      `https://d7jxq5gn-3001.euw.devtunnels.ms/wallets/clientInfo`
+    )
+    clientInfo = await response.json()
 
     let template
     let render
