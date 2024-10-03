@@ -1,16 +1,10 @@
-import fs from 'node:fs/promises' // NodeJS async file system module, 'interact' static files
-import express from 'express' // Express is NodeJS library for building api
-
-/**
-  This file is used to set up a NodeJS Express server to handle SSR for our React application. It dynamically selects the appropriate SSR render function and template based on the environment (development or production) and serves the rendered HTML to clients upon request.
-
-  The server is set up to serve the client-side assets in production and use Vite's middleware in development. The server also reads the SSR manifest file in production to determine the appropriate render function to use.
- */
-
+import fs from 'node:fs/promises'
+import express from 'express'
+import fetch from 'node-fetch'
 // Constants
 const isProduction = process.env.NODE_ENV === 'production'
-const port = process.env.PORT || 5173
-const base = process.env.BASE || '/'
+const port = process.env.PORT || 3000
+const base = process.env.BASE || '/:client_name/:exchange/:client_id'
 
 // Cached production assets
 const templateHtml = isProduction
@@ -41,9 +35,25 @@ if (!isProduction) {
 }
 
 // Serve HTML
+
 app.use('*', async (req, res) => {
   try {
     const url = req.originalUrl.replace(base, '')
+    console.log('======= url here =======')
+    console.log(req.originalUrl)
+
+    // Extract the client ID from the URL
+    const clientIdMatch = req.originalUrl.match(/(\d+)(?!.*\d)/)
+    const clientId = clientIdMatch ? clientIdMatch[0] : null
+    console.log('Extracted client ID:', clientId)
+
+    let clientInfo = {}
+    if (clientId) {
+      const response = await fetch(
+        `https://d7jxq5gn-3001.euw.devtunnels.ms/wallets/clientInfo`
+      )
+      clientInfo = await response.json()
+    }
 
     let template
     let render
@@ -58,9 +68,25 @@ app.use('*', async (req, res) => {
     }
 
     const rendered = await render(url, ssrManifest)
-
+    console.log('======== clientInfo here =======')
+    console.log(clientInfo)
     const html = template
-      .replace(`<!--app-head-->`, rendered.head ?? '')
+      .replace(
+        `<!--app-head-->`,
+        `
+        ${rendered.head ?? ''}
+        <meta property="og:title" content="${
+          clientInfo.name ?? 'Default Title'
+        }" />
+        <meta property="og:description" content="${
+          clientInfo.description ?? 'Default Description'
+        }" />
+        <meta property="og:image" content="${
+          clientInfo.image ?? 'default-image-url'
+        }" />
+        <meta property="og:url" content="${req.originalUrl}" />
+      `
+      )
       .replace(`<!--app-html-->`, rendered.html ?? '')
 
     res.status(200).set({ 'Content-Type': 'text/html' }).send(html)
