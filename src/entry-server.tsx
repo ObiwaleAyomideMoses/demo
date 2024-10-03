@@ -21,6 +21,7 @@ export function render({ path }: IRenderProps) {
         <Router />
       </StaticRouter>
     </React.StrictMode>
+    
   )
   return { html }
 }
