@@ -63,6 +63,8 @@ app.use('*', async (req, res) => {
       render = (await vite.ssrLoadModule('/src/entry-server.tsx')).render
     } else {
       template = templateHtml
+      console.log('======== templateHtml content =======')
+      console.log(template) // Log the content of templateHtml
       render = (await import('./dist/server/entry-server.js')).render
     }
 
@@ -83,7 +85,6 @@ app.use('*', async (req, res) => {
         <meta property="og:image" content="${
           clientInfo.image ?? 'default-image-url'
         }" />
-        <meta property="og:url" content="${req.originalUrl}" />
       `
       )
       .replace(`<!--app-html-->`, rendered.html ?? '')
