@@ -20,7 +20,6 @@
     }
   ],
   "buildCommand": "npm run build",
-  "startCommand": "npm run preview",
   "env": {
     "NODE_ENV": "production"
   }
